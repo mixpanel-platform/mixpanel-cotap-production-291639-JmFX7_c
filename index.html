@@ -13,18 +13,10 @@
       <div id="propSelect" style="float: left;"></div>
       <div id="dateSelect" style="float: right;"></div>
       <div class="event-selects">
-        <select id="event1" class="eventSelect" style="margin-bottom:15px;height:31px;border:1px solid #bdc7d2;-webkit-border-radius:2px;-moz-border-radius:2px;border-radius:2px;background-color:#f6f7f9;background-image:-moz-linear-gradient(top, #f9fafb, #f2f3f6);background-image:-ms-linear-gradient(top, #f9fafb, #f2f3f6);background-image:-webkit-gradient(linear, 0 0, 0 100%, from(#f9fafb), to(#f2f3f6));background-image:-webkit-linear-gradient(top, #f9fafb, #f2f3f6);background-image:-o-linear-gradient(top, #f9fafb 0, #f2f3f6 0);background-image:linear-gradient(top, #f9fafb 0, #f2f3f6 0);background-repeat:repeat-x;filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#f9fafb', endColorstr='#f2f3f6', GradientType=0);color:#5e617a;cursor:default;line-height:24px;display:block;font-size:13px;font-weight:bold;-webkit-user-select:none;-moz-user-select:none;-o-user-select:none;user-select:none">
-          <option value="" disabled selected>-- Select an event --</option>
-        </select>
-        <select id="event2" class="eventSelect" style="margin-bottom:15px;height:31px;border:1px solid #bdc7d2;-webkit-border-radius:2px;-moz-border-radius:2px;border-radius:2px;background-color:#f6f7f9;background-image:-moz-linear-gradient(top, #f9fafb, #f2f3f6);background-image:-ms-linear-gradient(top, #f9fafb, #f2f3f6);background-image:-webkit-gradient(linear, 0 0, 0 100%, from(#f9fafb), to(#f2f3f6));background-image:-webkit-linear-gradient(top, #f9fafb, #f2f3f6);background-image:-o-linear-gradient(top, #f9fafb 0, #f2f3f6 0);background-image:linear-gradient(top, #f9fafb 0, #f2f3f6 0);background-repeat:repeat-x;filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#f9fafb', endColorstr='#f2f3f6', GradientType=0);color:#5e617a;cursor:default;line-height:24px;display:block;font-size:13px;font-weight:bold;-webkit-user-select:none;-moz-user-select:none;-o-user-select:none;user-select:none">
-          <option value="" disabled selected>-- Select an event --</option>
-        </select>
-        <select id="event3" class="eventSelect" style="margin-bottom:15px;height:31px;border:1px solid #bdc7d2;-webkit-border-radius:2px;-moz-border-radius:2px;border-radius:2px;background-color:#f6f7f9;background-image:-moz-linear-gradient(top, #f9fafb, #f2f3f6);background-image:-ms-linear-gradient(top, #f9fafb, #f2f3f6);background-image:-webkit-gradient(linear, 0 0, 0 100%, from(#f9fafb), to(#f2f3f6));background-image:-webkit-linear-gradient(top, #f9fafb, #f2f3f6);background-image:-o-linear-gradient(top, #f9fafb 0, #f2f3f6 0);background-image:linear-gradient(top, #f9fafb 0, #f2f3f6 0);background-repeat:repeat-x;filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#f9fafb', endColorstr='#f2f3f6', GradientType=0);color:#5e617a;cursor:default;line-height:24px;display:block;font-size:13px;font-weight:bold;-webkit-user-select:none;-moz-user-select:none;-o-user-select:none;user-select:none">
-          <option value="" disabled selected>-- Select an event --</option>
-        </select>
-        <select id="event4" class="eventSelect" style="margin-bottom:15px;height:31px;border:1px solid #bdc7d2;-webkit-border-radius:2px;-moz-border-radius:2px;border-radius:2px;background-color:#f6f7f9;background-image:-moz-linear-gradient(top, #f9fafb, #f2f3f6);background-image:-ms-linear-gradient(top, #f9fafb, #f2f3f6);background-image:-webkit-gradient(linear, 0 0, 0 100%, from(#f9fafb), to(#f2f3f6));background-image:-webkit-linear-gradient(top, #f9fafb, #f2f3f6);background-image:-o-linear-gradient(top, #f9fafb 0, #f2f3f6 0);background-image:linear-gradient(top, #f9fafb 0, #f2f3f6 0);background-repeat:repeat-x;filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#f9fafb', endColorstr='#f2f3f6', GradientType=0);color:#5e617a;cursor:default;line-height:24px;display:block;font-size:13px;font-weight:bold;-webkit-user-select:none;-moz-user-select:none;-o-user-select:none;user-select:none">
-          <option value="" disabled selected>-- Select an event --</option>
-        </select>
+        <div id="event1" style="margin-bottom: 15px"></div>
+        <div id="event2" style="margin-bottom: 15px"></div>
+        <div id="event3" style="margin-bottom: 15px"></div>
+        <div id="event4"></div>
       </div>
       <div style="clear: both;"></div>
       <div id="graph"></div>
@@ -32,36 +24,16 @@
     <div id="table"></div>
     <script>
       var eventSelect = $('#eventSelect').MPEventSelect(),
-          event1 = $('#event1'),
-          event2 = $('#event2'),
-          event3 = $('#event3'),
-          event4 = $('#event4'),
+          event1 = $('#event1').MPEventSelect(),
+          event2 = $('#event2').MPEventSelect(),
+          event3 = $('#event3').MPEventSelect(),
+          event4 = $('#event4').MPEventSelect(),
           propSelect  = $('#propSelect').MPPropertySelect(),
           dateSelect  = $('#dateSelect').MPDatepicker(),
           eventGraph  = $('#graph').MPChart({chartType: 'line'}),
           eventTable  = $('#table').MPTable({
         showPercentages: true,
         firstColHeader: 'Event'
-      });
-      
-      $(document).ready(function() {
-        // Timeout allows event options to load from MPEventSelect before populating extra event selector lists
-        setTimeout(function() {
-          var eventOptions = [];
-
-          $('.options_list').children().each(function () {
-            eventOptions.push($(this).text());
-            console.log($(this).text());
-          });
-          console.log(eventOptions);
-          
-          // Add all event names to extra event selectors
-          $.each(eventOptions, function(i, event) {
-            $('.eventSelect').append("<option value=" + event + ">" + event + "</option>");
-          })
-
-        }, 5000);
-        
       });
       
       var runQuery = function() {
