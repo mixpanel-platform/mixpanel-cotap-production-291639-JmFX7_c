@@ -8,9 +8,7 @@
   </head>
   <body class="mixpanel-platform-body">
     <div class="mixpanel-platform-section">
-      <div id="eventSelect" style="float: left; display: none"></div>
-      <div id="by" class="mixpanel-platform-label" style="margin-left: 10px; display: none;">by</div>
-      <div id="propSelect" style="float: right;"></div>
+      <!--<div id="eventSelect" style="float: left; display: none"></div>-->
       <div id="dateSelect" style="float: right;"></div>
       <div class="event-selects">
         <div id="event1" style="margin-bottom: 15px"></div>
@@ -23,81 +21,103 @@
     </div>
     <div id="table"></div>
     <script>
+    
+      function getQueryVariable(variable) {
+    	  var query = window.location.search.substring(1);
+    	  var vars = query.split('&');
+    	  for (var i = 0; i < vars.length; i++) {
+    	    var pair = vars[i].split('=');
+    	    if (decodeURIComponent(pair[0]) == variable) {
+    	      return decodeURIComponent(pair[1]);
+    	    }
+    	  }
+    	  console.log('Query variable %s not found', variable);
+    	}
+    	
       // populate each dropdown with the project's events, properties, and dates
-      var eventSelect = $('#eventSelect').MPEventSelect(),
-          event1 = $('#event1').MPEventSelect(),
+      // var eventSelect = $('#eventSelect').MPEventSelect(),
+      var event1 = $('#event1').MPEventSelect(),
           event2 = $('#event2').MPEventSelect(),
           event3 = $('#event3').MPEventSelect(),
           event4 = $('#event4').MPEventSelect(),
-          propSelect  = $('#propSelect').MPPropertySelect(),
           dateSelect  = $('#dateSelect').MPDatepicker(),
           eventGraph  = $('#graph').MPChart({chartType: 'line', highchartsOptions: {
               tooltip: {
                   backgroundColor: '#fffce7'  // Make tooltip background yellow
               }
-          }}),
-          eventTable  = $('#table').MPTable({
-            showPercentages: true,
-            firstColHeader: 'Event'
-          });
+          }});
+          // eventTable  = $('#table').MPTable({
+          //   showPercentages: true,
+          //   firstColHeader: 'Event'
+          // });
       
       var runQuery = function() {
         
         var data = {},
-            eventNames = [event1, event2, event3, event4];
-            
-        $.each(eventNames, function(i, event) {
-          
-          var eventName = event.MPEventSelect('value'),
-              propName  = propSelect.MPPropertySelect('value'),
-              dateRange = dateSelect.MPDatepicker('value');
+            tableData = {},
+            eventNames = [event1, event2, event3, event4],
+            companyName = getQueryVariable("company"); // prompt("For which company should we filter?");
 
-          if (eventName) {
-            data[eventName] = {};
-            MP.api.segment(eventName, propName, dateRange).done(function(results) {
-              // {"where": "'mixpanel.com' in properties['$email']"}
-                $.each(results.values(), function(i, value) {
-                  $.each(value, function(date, numEvents) {
-                    data[eventName][date] = numEvents;
-                  });
-                });
-                console.log(results.values());
-                // console.log(data);
-                // console.log(JSON.stringify(data));
-                eventGraph.MPChart('setData', data);
-                eventTable.MPTable('setData', data);
-  
-              });
+        $.each(eventNames, function(i, event) {
+          var newData = {};
+          // obtain event name and date range values from dropdowns
+          var eventName = event.MPEventSelect('value'),
+              dateRange = dateSelect.MPDatepicker('value'),
+              fromDate,
+              toDate;
+          // assign from_date and to_date from date picker
+          $.each(dateRange, function(param, value) {
+            if (param == "from") {
+              fromDate = value;
             }
+            else if (param == "to") {
+              toDate = value;
+            }
+          });
+          
+          if (eventName) {
+            newData[eventName] = {};
+            tableData[eventName] = {};
+            // set parameters to be sent with segment query
+            params = {
+              from: fromDate,
+              to: toDate,
+              // set parameter that looks for the specific company name for which we will filter all events
+              "where": "(\"" + companyName + "\" in properties[\"$email\"])",
+            }
+            // perform segment query and append results to data
+            MP.api.segment(eventName, params).done(function(results) {
+              $.each(results.values(), function(i, value) {
+                $.each(value, function(date, numEvents) {
+                  newData[eventName][date] = numEvents;
+                  tableData[eventName][date] = numEvents;
+                });
+              });
+              // update Graph and Table with data for each event
+              eventGraph.MPChart('addSeries', newData);
+              console.log(tableData);
+              $('#table').MPTable({data: tableData, showPercentages: true, firstColHeader: 'Event'});
+            });
+          }
         });
-        // console.log(data);
-        // console.log(JSON.stringify(data));
-        // eventGraph.MPChart('setData', data);
-        // eventTable.MPTable('setData', data);
-        
       };
       
       event1.on('change', function(e, eventName) {
-        propSelect.MPPropertySelect('setEvent', eventName);
         runQuery();
         event2.show();
       });
       event2.on('change', function(e, eventName) {
-        propSelect.MPPropertySelect('setEvent', eventName);
         runQuery();
         event3.show();
       });
       event3.on('change', function(e, eventName) {
-        propSelect.MPPropertySelect('setEvent', eventName);
         runQuery();
         event4.show().css("margin-bottom", "15px");
       });
       event4.on('change', function(e, eventName) {
-        propSelect.MPPropertySelect('setEvent', eventName);
         runQuery();
       });
       
-      propSelect.on('change', runQuery);
       dateSelect.on('change', runQuery);
     </script>
   </body>
