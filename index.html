@@ -33,6 +33,7 @@
     	  }
     	  console.log('Query variable %s not found', variable);
     	}
+    	var companyName = getQueryVariable("company");
     	
       // populate each dropdown with the project's events, properties, and dates
       // var eventSelect = $('#eventSelect').MPEventSelect(),
@@ -55,8 +56,8 @@
         
         var data = {},
             tableData = {},
-            eventNames = [event1, event2, event3, event4],
-            companyName = getQueryVariable("company"); // prompt("For which company should we filter?");
+            eventNames = [event1, event2, event3, event4];
+            companyName = prompt("For which company should we filter?");
 
         $.each(eventNames, function(i, event) {
           var newData = {};
