@@ -10,12 +10,12 @@
     <div class="mixpanel-platform-section">
       <div class="instructions">
         <h1 style="font-size: 18px; color: rgb(95,105,131)">CoTap Dashboard</h1>
-        <p style="font-size: 13px; color: rgb(95,105,131)">Please confirm a company name (that is included in the email address of its users) before selecting events.</p>
+        <p style="font-size: 13px; color: rgb(95,105,131)">Please confirm a company name (that is included in the email address of its users, e.g., "Mixpanel" or "mixpanel.com") before selecting events.</p>
       </div>
       <div id="dateSelect" style="float: right;"></div>
       <div id="companySelect" style="margin-bottom: 15px; display: none"></div>
       <form id="company" style="margin-bottom: 15px; height: 31px">
-        <input type="text" placeholder="Company Name" name="company-name-field" value="" style="color: rgb(95,105,131); height: 30px; padding: 0 4px; font-size: 12px; border: 1px solid rgb(201,209,219)">
+        <input type="text" autofocus placeholder="Email address contains" name="company-name-field" value="" style="color: rgb(95,105,131); height: 30px; padding: 0 4px; font-size: 12px; border: 1px solid rgb(201,209,219)">
         <input type="submit" name="submit" value="Confirm" style="color: rgb(95,105,131); font-size: 12px; height: 31px; padding: 0 10px; margin-left: 10px; border: 1px solid rgb(201,209,219); background-color: rgb(242,244,246)">
       </form>
       <div class="confirmation">
@@ -31,6 +31,12 @@
       <div id="graph"></div>
     </div>
     <div id="table"></div>
+    <div id="table-holder">
+      <div id="table1"></div>
+      <div id="table2"></div>
+      <div id="table3"></div>
+      <div id="table4"></div>
+    </div>
     <script>
     
       // populate each dropdown with the project's events, properties, and dates
@@ -46,41 +52,55 @@
           }}),
           options = {'items': [{label: '-- Select Company --', value: ''},]},
           companyName = '',
+          numPeople = 0,
           companySelect = $('#companySelect').MPSelect(options);
-          // eventTable  = $('#table').MPTable({
-          //   showPercentages: true,
-          //   firstColHeader: 'Event'
-          // });
+      var table1  = $('#table1').MPTable({
+            showPercentages: true,
+            firstColHeader: 'Event'
+          }),
+          table2  = $('#table2').MPTable({
+            showPercentages: true,
+            firstColHeader: 'Event'
+          }),
+          table3  = $('#table3').MPTable({
+            showPercentages: true,
+            firstColHeader: 'Event'
+          }),
+          table4  = $('#table4').MPTable({
+            showPercentages: true,
+            firstColHeader: 'Event'
+          });
 
       $('#company').submit(function(e) {
         e.preventDefault();
         companyName = $('#company input:first').val();
-        $('.confirm-text').html("Company: <strong>" + companyName + "</strong>")
-        $('#company input:first').val('');
-      })
-      
-      MP.api.propertyValues("Signed up", "$email").done(function(results) {
-        $.each(results.values(), function(i, propertyValue) {
-          options['items'].push({label: propertyValue, value: propertyValue});
+        MP.api.people({where: "(\"" + companyName + "\" in properties[\"$email\"])"}).done(function(results) {
+          numPeople = Object.keys(results.values().results).length;
+          console.log(numPeople);
+          $('.confirm-text').html("Company: <strong>" + companyName + "</strong>; People profiles who match: <strong>" + numPeople + "</strong>").css("color", "rgb(95,105,131)")
+          runQuery();
         });
-        $('#companySelect').MPSelect(options);
       });
+      
+      // MP.api.propertyValues("Signed up", "$email").done(function(results) {
+      //   $.each(results.values(), function(i, propertyValue) {
+      //     options['items'].push({label: propertyValue, value: propertyValue});
+      //   });
+      //   $('#companySelect').MPSelect(options);
+      // });
 
       // run when any dropdown is altered
-      var runQuery = function() {
+      var runQuery = function(tableName) {
         
         if (!companyName) {
-          $('.confirm-text').html("Error: Please enter a company name above.").css("color", "red");
-          event1.val('-- Select Event --');
+          $('.confirm-text').html("Error: Please enter a company name above. Be sure to change the event below and then go back to your selection.").css("color", "red");
+          $('#event1').val('-- Select an event --'); ////// this needs to be fixed
         }
         else {
           var data = {},
-              tableData = {},
               eventNames = [event1, event2, event3, event4];
               //companyName = $('#companySelect').val();
               
-          console.log(companyName);
-  
           $.each(eventNames, function(i, event) {
             var newData = {};
             // obtain event name and date range values from dropdowns
@@ -100,7 +120,7 @@
             
             if (eventName) {
               newData[eventName] = {};
-              tableData[eventName] = {};
+              data[eventName] = {};
               // set parameters to be sent with segment query
               params = {
                 from: fromDate,
@@ -113,36 +133,37 @@
                 $.each(results.values(), function(i, value) {
                   $.each(value, function(date, numEvents) {
                     newData[eventName][date] = numEvents;
-                    tableData[eventName][date] = numEvents;
+                    data[eventName][date] = numEvents;
                   });
-                  console.log(tableData);
-                  $('#table').MPTable({data: tableData, showPercentages: true, firstColHeader: 'Event'});
                 });
                 // update Graph and Table with data for each event
                 eventGraph.MPChart('addSeries', newData);
-                console.log(tableData);
-                //$('#table').MPTable({data: tableData, showPercentages: true, firstColHeader: 'Event'});
+                //$('#table').MPTable({data: newData, showPercentages: true, firstColHeader: 'Event'}).css("visibility", "visible"); 
+                //$(tableName).MPTable({data: newData, showPercentages: true, firstColHeader: 'Event'}).css("visibility", "visible");
+                $(tableName).MPTable('setData', newData);
               });
             }
           });
-        
         }
       };
       
       event1.on('change', function(e, eventName) {
-        runQuery();
+        runQuery('#table1');
         event2.show();
       });
       event2.on('change', function(e, eventName) {
-        runQuery();
+        runQuery('#table2');
         event3.show();
+        //table1.hide();
       });
       event3.on('change', function(e, eventName) {
-        runQuery();
+        runQuery('#table3');
         event4.show().css("margin-bottom", "15px");
+        //table2.hide();
       });
       event4.on('change', function(e, eventName) {
-        runQuery();
+        runQuery('#table4');
+        //table3.hide();
       });
       
       companySelect.on('change', runQuery);
