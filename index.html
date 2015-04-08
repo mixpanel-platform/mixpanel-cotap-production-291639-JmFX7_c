@@ -9,7 +9,7 @@
   <body class="mixpanel-platform-body">
     <div class="mixpanel-platform-section">
       <div class="instructions">
-        <h1 style="font-size: 17px; color: rgb(95,105,131)">CoTap Dashboard</h1>
+        <h1 style="font-size: 18px; color: rgb(95,105,131)">CoTap Dashboard</h1>
         <p style="font-size: 13px; color: rgb(95,105,131)">Please confirm a company name (that is included in the email address of its users) before selecting events.</p>
       </div>
       <div id="dateSelect" style="float: right;"></div>
@@ -19,7 +19,7 @@
         <input type="submit" name="submit" value="Confirm" style="color: rgb(95,105,131); font-size: 12px; height: 31px; padding: 0 10px; margin-left: 10px; border: 1px solid rgb(201,209,219); background-color: rgb(242,244,246)">
       </form>
       <div class="confirmation">
-        <p class="confirm-text"></p>
+        <p class="confirm-text" style="color: rgb(95,105,131); font-size: 15px"></p>
       </div>
       <div class="event-selects">
         <div id="event1" style="margin-bottom: 15px"></div>
@@ -69,57 +69,64 @@
       // run when any dropdown is altered
       var runQuery = function() {
         
-        var data = {},
-            tableData = {},
-            eventNames = [event1, event2, event3, event4];
-            companyName = $('#companySelect').val();
+        if (!companyName) {
+          $('.confirm-text').html("Error: Please enter a company name above.").css("color", "red");
+          event1.val('-- Select Event --');
+        }
+        else {
+          var data = {},
+              tableData = {},
+              eventNames = [event1, event2, event3, event4];
+              //companyName = $('#companySelect').val();
+              
+          console.log(companyName);
+  
+          $.each(eventNames, function(i, event) {
+            var newData = {};
+            // obtain event name and date range values from dropdowns
+            var eventName = event.MPEventSelect('value'),
+                dateRange = dateSelect.MPDatepicker('value'),
+                fromDate,
+                toDate;
+            // assign from_date and to_date from date picker
+            $.each(dateRange, function(param, value) {
+              if (param == "from") {
+                fromDate = value;
+              }
+              else if (param == "to") {
+                toDate = value;
+              }
+            });
             
-        console.log(companyName);
-
-        $.each(eventNames, function(i, event) {
-          var newData = {};
-          // obtain event name and date range values from dropdowns
-          var eventName = event.MPEventSelect('value'),
-              dateRange = dateSelect.MPDatepicker('value'),
-              fromDate,
-              toDate;
-          // assign from_date and to_date from date picker
-          $.each(dateRange, function(param, value) {
-            if (param == "from") {
-              fromDate = value;
-            }
-            else if (param == "to") {
-              toDate = value;
+            if (eventName) {
+              newData[eventName] = {};
+              tableData[eventName] = {};
+              // set parameters to be sent with segment query
+              params = {
+                from: fromDate,
+                to: toDate,
+                // set parameter that looks for the specific company name for which we will filter all events
+                "where": "(\"" + companyName + "\" in properties[\"$email\"])",
+              }
+              // perform segment query and append results to data
+              MP.api.segment(eventName, params).done(function(results) {
+                $.each(results.values(), function(i, value) {
+                  $.each(value, function(date, numEvents) {
+                    newData[eventName][date] = numEvents;
+                    tableData[eventName][date] = numEvents;
+                  });
+                  console.log(tableData);
+                  $('#table').MPTable({data: tableData, showPercentages: true, firstColHeader: 'Event'});
+                });
+                // update Graph and Table with data for each event
+                eventGraph.MPChart('addSeries', newData);
+                console.log(tableData);
+                //$('#table').MPTable({data: tableData, showPercentages: true, firstColHeader: 'Event'});
+              });
             }
           });
-          
-          if (eventName) {
-            newData[eventName] = {};
-            tableData[eventName] = {};
-            // set parameters to be sent with segment query
-            params = {
-              from: fromDate,
-              to: toDate,
-              // set parameter that looks for the specific company name for which we will filter all events
-              "where": "(\"" + companyName + "\" in properties[\"$email\"])",
-            }
-            // perform segment query and append results to data
-            MP.api.segment(eventName, params).done(function(results) {
-              $.each(results.values(), function(i, value) {
-                $.each(value, function(date, numEvents) {
-                  newData[eventName][date] = numEvents;
-                  tableData[eventName][date] = numEvents;
-                });
-                console.log(tableData);
-                $('#table').MPTable({data: tableData, showPercentages: true, firstColHeader: 'Event'});
-              });
-              // update Graph and Table with data for each event
-              eventGraph.MPChart('addSeries', newData);
-              console.log(tableData);
-              //$('#table').MPTable({data: tableData, showPercentages: true, firstColHeader: 'Event'});
-            });
-          }
-        });
+        
+        }
       };
       
       event1.on('change', function(e, eventName) {
