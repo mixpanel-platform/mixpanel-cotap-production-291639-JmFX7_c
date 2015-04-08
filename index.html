@@ -9,14 +9,14 @@
   <body class="mixpanel-platform-body">
     <div class="mixpanel-platform-section">
       <div class="instructions">
-        <h1>CoTap Dashboard</h1>
-        <p>Please confirm</p>
+        <h1 style="font-size: 17px; color: rgb(95,105,131)">CoTap Dashboard</h1>
+        <p style="font-size: 13px; color: rgb(95,105,131)">Please confirm a company name (that is included in the email address of its users) before selecting events.</p>
       </div>
       <div id="dateSelect" style="float: right;"></div>
-      <div id="companySelect" style="margin-bottom: 15px"></div>
-      <form id="company" style="margin-bottom: 15px">
-        <input type="text" placeholder="Company Name" name="company-name-field" value="">
-        <input type="submit" name="submit" value="Confirm">
+      <div id="companySelect" style="margin-bottom: 15px; display: none"></div>
+      <form id="company" style="margin-bottom: 15px; height: 31px">
+        <input type="text" placeholder="Company Name" name="company-name-field" value="" style="color: rgb(95,105,131); height: 30px; padding: 0 4px; font-size: 12px; border: 1px solid rgb(201,209,219)">
+        <input type="submit" name="submit" value="Confirm" style="color: rgb(95,105,131); font-size: 12px; height: 31px; padding: 0 10px; margin-left: 10px; border: 1px solid rgb(201,209,219); background-color: rgb(242,244,246)">
       </form>
       <div class="confirmation">
         <p class="confirm-text"></p>
@@ -52,11 +52,11 @@
           //   firstColHeader: 'Event'
           // });
 
-      $('.company').submit(function(e) {
+      $('#company').submit(function(e) {
         e.preventDefault();
-        companyName = $('input:first').val();
-        $('.confirm-text').text("Company: " + companyName)
-        $('input:first').val('');
+        companyName = $('#company input:first').val();
+        $('.confirm-text').html("Company: <strong>" + companyName + "</strong>")
+        $('#company input:first').val('');
       })
       
       MP.api.propertyValues("Signed up", "$email").done(function(results) {
