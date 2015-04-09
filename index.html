@@ -32,12 +32,13 @@
     <div id="table"></div>
     <script>
     
-      // populate each dropdown with the project's events, properties, and dates
+      // populate each dropdown with the project's events and add a date picker
       var event1 = $('#event1').MPEventSelect(),
           event2 = $('#event2').MPEventSelect(),
           event3 = $('#event3').MPEventSelect(),
           event4 = $('#event4').MPEventSelect(),
           dateSelect  = $('#dateSelect').MPDatepicker(),
+          // set options for MP graph and MP table (to be populated later)
           eventGraph  = $('#graph').MPChart({chartType: 'line', highchartsOptions: {
               tooltip: {
                   backgroundColor: '#fffce7'  // Make tooltip background yellow
@@ -47,14 +48,15 @@
             showPercentages: true,
             firstColHeader: 'Event'
           }),
+          // set global variables for the company by which we will filter
           companyName = '',
           numPeople = 0;
 
-
+      // record search term when company name is submitted and find # users who match search term
       $('#company').submit(function(e) {
         e.preventDefault();
         companyName = $('#company input:first').val();
-        // query People profiles and find the number of users who match the search term
+        // query People profiles to find the number of users who match the search term
         MP.api.people({where: "(\"" + companyName + "\" in properties[\"$email\"])"}).done(function(results) {
           numPeople = Object.keys(results.values().results).length;
           $('.confirm-text')
@@ -67,20 +69,23 @@
         $('#company input:first').val('');
       });
 
-      // run when any dropdown is altered
+      // get all event dropdown inputs and run segmentation queries segmented by "$email contains [search term]"
       function runQuery() {
-        
+        // return error if no search term was submitted
         if (!companyName) {
           $('.confirm-text')
             .html("Error: Please enter a company name above. Be sure to change the event below and then go back to your selection to reset.")
             .css("color", "red");
+          // reset event dropdown
           $('#event1').MPEventSelect().data()['mixpanel-MPEventSelect'].input.set_label('-- Select an event --');
         }
+        // if search term submitted run function
         else {
           var data = {},
               eventNameCount = 0,
               eventNames = [event1, event2, event3, event4];
-
+              
+          // count how many events have been selected
           $.each(eventNames, function(i, event) {
             eventThere = event.MPEventSelect('value');
             if (eventThere) {
@@ -88,9 +93,8 @@
             }
           })
           
-          // iterate through each event that has been selected and 
+          // iterate through each event that has been selected and create segmentation graph and table
           $.each(eventNames, function(i, event) {
-            var newData = {};
             // obtain event name and date range values from dropdowns
             var eventName = event.MPEventSelect('value'),
                 dateRange = dateSelect.MPDatepicker('value'),
@@ -105,18 +109,14 @@
                 toDate = value;
               }
             });
-            
+            // set parameters and append segmentation results to data
             if (eventName) {
-              newData[eventName] = {};
-              data[eventName] = {};
-              // set parameters to be sent with segment query
               params = {
                 from: fromDate,
                 to: toDate,
-                // set parameter that looks for the specific company name for which we will filter all events
+                // set parameter that looks for the specific company name by which we will filter all events
                 "where": "(\"" + companyName + "\" in properties[\"$email\"])", 
               }
-              // perform segment query and append results to data
               MP.api.segment(eventName, params).done(function(results) {
                 $.extend(data, results.json);
                 console.log(data);
@@ -131,6 +131,7 @@
         }
       };
       
+      // set functions to run when dropdowns change
       event1.on('change', function(e, eventName) {
         runQuery();
         event2.show();
@@ -149,7 +150,6 @@
       
       dateSelect.on('change', function() {
         runQuery();
-        console.log('hello');
       });
 
     </script>
