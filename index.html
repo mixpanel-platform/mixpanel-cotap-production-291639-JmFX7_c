@@ -50,30 +50,15 @@
                   backgroundColor: '#fffce7'  // Make tooltip background yellow
               }
           }}),
+          eventTable = $('#table').MPTable({
+            showPercentages: true,
+            firstColHeader: 'Event'
+          }),
           options = {'items': [{label: '-- Select Company --', value: ''},]},
           companyName = '',
           numPeople = 0,
           companySelect = $('#companySelect').MPSelect(options);
-      var table1 = $('#table1').MPTable({
-            showPercentages: true,
-            firstColHeader: 'Event'
-          }),
-          table2 = $('#table2').MPTable({
-            showPercentages: true,
-            firstColHeader: 'Event'
-          }),
-          table3 = $('#table3').MPTable({
-            showPercentages: true,
-            firstColHeader: 'Event'
-          }),
-          table4 = $('#table4').MPTable({
-            showPercentages: true,
-            firstColHeader: 'Event'
-          }),
-          table = $('#table').MPTable({
-            showPercentages: true,
-            firstColHeader: 'Event'
-          });
+
 
       $('#company').submit(function(e) {
         e.preventDefault();
@@ -81,7 +66,11 @@
         // query People profiles and find the number of users who match the search term
         MP.api.people({where: "(\"" + companyName + "\" in properties[\"$email\"])"}).done(function(results) {
           numPeople = Object.keys(results.values().results).length;
-          $('.confirm-text').html("Company: <strong>" + companyName + "</strong><br># People profiles that match: <strong>" + numPeople + "</strong>").css("color", "rgb(95,105,131)")
+          $('.confirm-text')
+            .html(
+              "Company: <strong>" + companyName + 
+              "</strong><br># People profiles that match: <strong>" + numPeople + "</strong>")
+            .css("color", "rgb(95,105,131)");
           runQuery();
         });
       });
@@ -94,7 +83,7 @@
       // });
 
       // run when any dropdown is altered
-      var runQuery = function(tableName) {
+      function runQuery() {
         
         if (!companyName) {
           $('.confirm-text').html("Error: Please enter a company name above. Be sure to change the event below and then go back to your selection to reset.").css("color", "red");
@@ -110,7 +99,6 @@
             eventThere = event.MPEventSelect('value');
             if (eventThere) {
               eventNameCount ++;
-              console.log(eventNameCount);
             }
           })
               
@@ -143,24 +131,11 @@
               }
               // perform segment query and append results to data
               MP.api.segment(eventName, params).done(function(results) {
-                console.log(results);
-                console.log(results.json);
                 $.extend(data, results.json); //data[eventName] = results.json;
                 console.log(data);
-                // $.each(results.values(), function(i, value) {
-                //   $.each(value, function(date, numEvents) {
-                //     newData[eventName][date] = numEvents;
-                //     data[eventName][date] = numEvents;
-                //   });
-                // });
-                // update Graph and Table with data for each event
-                //if (eventName)
-                console.log(eventNames.indexOf(event) + 1);
                 if ((eventNames.indexOf(event) + 1) == eventNameCount) {
-                  eventGraph.MPChart('addSeries', results);
-                  table.MPTable('setData', data);
-                  //$(tableName).MPTable({data: newData, showPercentages: true, firstColHeader: 'Event'}).css("visibility", "visible");
-                  //$(tableName).MPTable('setData', results);
+                  eventGraph.MPChart('setData', data);
+                  eventTable.MPTable('setData', data);
                 }
               });
             }
@@ -169,27 +144,26 @@
       };
       
       event1.on('change', function(e, eventName) {
-        runQuery('#table1');
+        runQuery();
         event2.show();
       });
       event2.on('change', function(e, eventName) {
-        runQuery('#table2');
+        runQuery();
         event3.show();
-        //table1.hide();
       });
       event3.on('change', function(e, eventName) {
-        runQuery('#table3');
+        runQuery();
         event4.show().css("margin-bottom", "15px");
-        //table2.hide();
       });
       event4.on('change', function(e, eventName) {
-        runQuery('#table4');
-        //table3.hide();
+        runQuery();
       });
       
-      companySelect.on('change', runQuery);
-      dateSelect.on('change', runQuery);
-      
+      //companySelect.on('change', runQuery);
+      dateSelect.on('change', function() {
+        runQuery();
+        console.log('hello');
+      });
     </script>
   </body>
 </html>
