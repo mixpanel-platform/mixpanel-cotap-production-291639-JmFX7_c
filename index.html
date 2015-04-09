@@ -10,13 +10,12 @@
     <div class="mixpanel-platform-section">
       <div class="instructions">
         <h1 style="font-size: 18px; color: rgb(95,105,131)">CoTap Dashboard</h1>
-        <p style="font-size: 13px; color: rgb(95,105,131)">Please confirm a company name (that is included in the email address of its users, e.g., "Mixpanel" or "mixpanel.com") before selecting events.</p>
+        <p style="font-size: 13px; color: rgb(95,105,131)">Please enter a company name (or search term included in the email address of its users, e.g., "Mixpanel" or "mixpanel.com") before selecting events.</p>
       </div>
       <div id="dateSelect" style="float: right;"></div>
-      <div id="companySelect" style="margin-bottom: 15px; display: none"></div>
       <form id="company" style="margin-bottom: 15px; height: 31px">
         <input type="text" autofocus placeholder="Email address contains" name="company-name-field" value="" style="color: rgb(95,105,131); height: 30px; padding: 0 4px; font-size: 12px; border: 1px solid rgb(201,209,219)">
-        <input type="submit" name="submit" value="Confirm" style="color: rgb(95,105,131); font-size: 12px; height: 31px; padding: 0 10px; margin-left: 10px; border: 1px solid rgb(201,209,219); background-color: rgb(242,244,246)">
+        <input type="submit" name="submit" value="Submit" style="font-weight: bold; color: rgb(95,105,131); font-size: 12px; height: 31px; padding: 0 10px; margin-left: 10px; border: 1px solid rgb(201,209,219); background-color: rgb(242,244,246)">
       </form>
       <div class="confirmation">
         <p class="confirm-text" style="color: rgb(95,105,131); font-size: 15px"></p>
@@ -31,12 +30,6 @@
       <div id="graph"></div>
     </div>
     <div id="table"></div>
-    <div id="table-holder">
-      <div id="table1"></div>
-      <div id="table2"></div>
-      <div id="table3"></div>
-      <div id="table4"></div>
-    </div>
     <script>
     
       // populate each dropdown with the project's events, properties, and dates
@@ -54,10 +47,8 @@
             showPercentages: true,
             firstColHeader: 'Event'
           }),
-          options = {'items': [{label: '-- Select Company --', value: ''},]},
           companyName = '',
-          numPeople = 0,
-          companySelect = $('#companySelect').MPSelect(options);
+          numPeople = 0;
 
 
       $('#company').submit(function(e) {
@@ -73,35 +64,31 @@
             .css("color", "rgb(95,105,131)");
           runQuery();
         });
+        $('#company input:first').val('');
       });
-      
-      // MP.api.propertyValues("Signed up", "$email").done(function(results) {
-      //   $.each(results.values(), function(i, propertyValue) {
-      //     options['items'].push({label: propertyValue, value: propertyValue});
-      //   });
-      //   $('#companySelect').MPSelect(options);
-      // });
 
       // run when any dropdown is altered
       function runQuery() {
         
         if (!companyName) {
-          $('.confirm-text').html("Error: Please enter a company name above. Be sure to change the event below and then go back to your selection to reset.").css("color", "red");
-          $('#event1').val('-- Select an event --'); ////// this needs to be fixed
+          $('.confirm-text')
+            .html("Error: Please enter a company name above. Be sure to change the event below and then go back to your selection to reset.")
+            .css("color", "red");
+          $('#event1').MPEventSelect().data()['mixpanel-MPEventSelect'].input.set_label('-- Select an event --');
         }
         else {
           var data = {},
               eventNameCount = 0,
               eventNames = [event1, event2, event3, event4];
-              //companyName = $('#companySelect').val();
-              
+
           $.each(eventNames, function(i, event) {
             eventThere = event.MPEventSelect('value');
             if (eventThere) {
               eventNameCount ++;
             }
           })
-              
+          
+          // iterate through each event that has been selected and 
           $.each(eventNames, function(i, event) {
             var newData = {};
             // obtain event name and date range values from dropdowns
@@ -127,12 +114,13 @@
                 from: fromDate,
                 to: toDate,
                 // set parameter that looks for the specific company name for which we will filter all events
-                "where": "(\"" + companyName + "\" in properties[\"$email\"])",
+                "where": "(\"" + companyName + "\" in properties[\"$email\"])", 
               }
               // perform segment query and append results to data
               MP.api.segment(eventName, params).done(function(results) {
-                $.extend(data, results.json); //data[eventName] = results.json;
+                $.extend(data, results.json);
                 console.log(data);
+                // only create graph and table if it is the last iteration of $.each
                 if ((eventNames.indexOf(event) + 1) == eventNameCount) {
                   eventGraph.MPChart('setData', data);
                   eventTable.MPTable('setData', data);
@@ -159,11 +147,11 @@
         runQuery();
       });
       
-      //companySelect.on('change', runQuery);
       dateSelect.on('change', function() {
         runQuery();
         console.log('hello');
       });
+
     </script>
   </body>
 </html>
