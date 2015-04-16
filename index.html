@@ -12,7 +12,8 @@
         <h1 style="font-size: 18px; color: rgb(95,105,131)">Cotap Dashboard</h1>
         <p style="font-size: 13px; color: rgb(95,105,131)">Please enter a company name (or search term included in the email address of its users, e.g., "Mixpanel" or "mixpanel.com") before selecting events.</p>
       </div>
-      <div id="dateSelect" style="float: right;"></div>
+      <div id="dateSelect" style="float: right; margin-bottom: 15px"></div>
+      <div id="typeSelect" style="float: right"></div>
       <form id="company" style="margin-bottom: 15px; height: 31px">
         <input type="text" autofocus placeholder="Email address contains" name="company-name-field" value="" style="color: rgb(95,105,131); height: 30px; padding: 0 4px; font-size: 12px; border: 1px solid rgb(201,209,219)">
         <input type="submit" name="submit" value="Submit" style="font-weight: bold; color: rgb(95,105,131); font-size: 12px; height: 31px; padding: 0 10px; margin-left: 10px; border: 1px solid rgb(201,209,219); background-color: rgb(242,244,246)">
@@ -38,6 +39,16 @@
           event3 = $('#event3').MPEventSelect(),
           event4 = $('#event4').MPEventSelect(),
           dateSelect  = $('#dateSelect').MPDatepicker(),
+          // add type select (total, unique, average)
+          options = {
+            items: [
+              {label: 'Total', value: 'general'},
+              {label: 'Unique', value: 'unique'},
+              {label: 'Average', value: 'average'}
+              ]
+          },
+          typeSelect = $('#typeSelect').MPSelect(options),
+
           // set options for MP graph and MP table (to be populated later)
           eventGraph  = $('#graph').MPChart({chartType: 'line', highchartsOptions: {
               tooltip: {
@@ -97,6 +108,7 @@
           $.each(eventNames, function(i, event) {
             // obtain event name and date range values from dropdowns
             var eventName = event.MPEventSelect('value'),
+                typeName  = typeSelect.MPSelect('value'),
                 dateRange = dateSelect.MPDatepicker('value'),
                 fromDate,
                 toDate;
@@ -114,12 +126,12 @@
               params = {
                 from: fromDate,
                 to: toDate,
+                type: typeName,
                 // set parameter that looks for the specific company name by which we will filter all events
                 "where": "(\"" + companyName + "\" in properties[\"$email\"])", 
               }
               MP.api.segment(eventName, params).done(function(results) {
                 $.extend(data, results.json);
-                console.log(data);
                 // only create graph and table if it is the last iteration of $.each
                 if ((eventNames.indexOf(event) + 1) == eventNameCount) {
                   eventGraph.MPChart('setData', data);
@@ -151,6 +163,10 @@
       dateSelect.on('change', function() {
         runQuery();
       });
+      
+      typeSelect.on('change', function() {
+        runQuery();
+      })
 
     </script>
   </body>
