@@ -26,7 +26,8 @@
         <div id="event3" style="margin-bottom: 15px; display: none"></div>
         <div id="event4" style="display: none"></div>
       </div>
-      <div id="typeSelect" style="float: right"></div>
+      <div id="intervalSelect" style="float: right"></div>
+      <div id="typeSelect" style="float: right; margin-right: 15px"></div>
       <div style="clear: both;"></div>
       <div id="graph"></div>
     </div>
@@ -47,7 +48,16 @@
               {label: 'Average', value: 'average'}
               ]
           },
+          options2 = {
+            items: [
+              {label: 'Hour', value: 'hour'},
+              {label: 'Day', value: 'day'},
+              {label: 'Week', value: 'week'},
+              {label: 'Month', value: 'month'}
+              ]
+          },
           typeSelect = $('#typeSelect').MPSelect(options),
+          intervalSelect = $('#intervalSelect').MPSelect(options2),
 
           // set options for MP graph and MP table (to be populated later)
           eventGraph  = $('#graph').MPChart({chartType: 'line', highchartsOptions: {
@@ -62,6 +72,9 @@
           // set global variables for the company by which we will filter
           companyName = '',
           numPeople = 0;
+          
+      // set default interval to daily
+      $('#intervalSelect').val('day');
 
       // record search term when company name is submitted and find # users who match search term
       $('#company').submit(function(e) {
@@ -109,6 +122,7 @@
             // obtain event name and date range values from dropdowns
             var eventName = event.MPEventSelect('value'),
                 typeName  = typeSelect.MPSelect('value'),
+                intervalType = intervalSelect.MPSelect('value'),
                 dateRange = dateSelect.MPDatepicker('value'),
                 fromDate,
                 toDate;
@@ -127,6 +141,7 @@
                 from: fromDate,
                 to: toDate,
                 type: typeName,
+                unit: intervalType,
                 // set parameter that looks for the specific company name by which we will filter all events
                 "where": "(\"" + companyName + "\" in properties[\"$email\"])", 
               }
@@ -136,6 +151,7 @@
                 if ((eventNames.indexOf(event) + 1) == eventNameCount) {
                   eventGraph.MPChart('setData', data);
                   eventTable.MPTable('setData', data);
+                  $('#graph').css('margin-top', '15px');
                 }
               });
             }
@@ -163,11 +179,13 @@
       dateSelect.on('change', function() {
         runQuery();
       });
-      
       typeSelect.on('change', function() {
         runQuery();
-      })
-
+      });
+      intervalSelect.on('change', function() {
+        runQuery();
+      });
+      
     </script>
   </body>
 </html>
