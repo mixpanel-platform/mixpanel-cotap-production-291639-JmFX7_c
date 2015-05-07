@@ -124,17 +124,9 @@
                 typeName  = typeSelect.MPSelect('value'),
                 intervalType = intervalSelect.MPSelect('value'),
                 dateRange = dateSelect.MPDatepicker('value'),
-                fromDate,
-                toDate;
-            // assign from_date and to_date from date picker
-            $.each(dateRange, function(param, value) {
-              if (param == "from") {
-                fromDate = value;
-              }
-              else if (param == "to") {
-                toDate = value;
-              }
-            });
+                fromDate = dateRange.from,
+                toDate = dateRange.to;
+                
             // set parameters and append segmentation results to data
             if (eventName) {
               params = {
